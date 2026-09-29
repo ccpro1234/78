@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<title>God's Eye AI - Standalone Fixed</title>
+
+<!-- =========================================================
+     GOD'S EYE AI — STANDALONE FIXED
+     ไฟล์นี้ทำงานด้วย HTML/CSS/JS ไฟล์เดียว
+     ไม่ต้องใช้ React / Vite / main.tsx
+     ========================================================= -->
+
+<style>
+:root{
+  --bg:#07111f;
+  --panel:rgba(15,27,45,.90);
+  --panel2:rgba(9,20,34,.96);
+  --line:rgba(255,255,255,.10);
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --gold:#fcd34d;
+  --blue:#3b82f6;
+  --red:#ef4444;
+  --green:#22c55e;
+  --cyan:#22d3ee;
+  --orange:#f59e0b;
+}
+*{box-sizing:border-box}
+html{background:#020617}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(37,99,235,.18),transparent 32%),
+    radial-gradient(circle at 85% 5%,rgba(245,158,11,.12),transparent 28%),
+    linear-gradient(145deg,#020617,#07111f 48%,#0b1324);
+  color:var(--text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font:inherit}
+.app{
+  width:min(1120px,100%);
+  margin:auto;
+  padding:18px 14px 110px;
+}
+.header{
+  text-align:center;
+  margin:8px 0 18px;
+}
+.header h1{
+  margin:0;
+  font-size:clamp(24px,5vw,38px);
+  font-weight:900;
+  letter-spacing:.3px;
+  background:linear-gradient(90deg,#fcd34d,#fff7c2,#f59e0b);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.header p{margin:4px 0;color:var(--muted);font-size:12px}
+
+.grid4{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:12px;
+}
+.card{
+  background:linear-gradient(145deg,rgba(15,27,45,.94),rgba(7,16,29,.94));
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:0 14px 40px rgba(0,0,0,.24);
+  padding:14px;
+  backdrop-filter:blur(10px);
+}
+.stat{text-align:center}
+.stat .label{font-size:12px;color:var(--muted);font-weight:700}
+.stat .num{font-size:28px;font-weight:900;margin-top:2px}
+.p{color:#60a5fa}.b{color:#f87171}.t{color:#4ade80}
+
+.main-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.3fr) minmax(310px,.7fr);
+  gap:12px;
+}
+.section-title{
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+  color:#94a3b8;
+  text-transform:uppercase;
+  padding-bottom:9px;
+  margin-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
+.road-wrap{
+  overflow-x:auto;
+  border-radius:12px;
+  background:#020617;
+  border:1px solid rgba(255,255,255,.08);
+  padding:10px;
+}
+.road{
+  display:grid;
+  grid-template-rows:repeat(6,30px);
+  grid-auto-flow:column;
+  grid-auto-columns:30px;
+  gap:3px;
+  width:max-content;
+  min-width:100%;
+}
+.cell{
+  width:27px;height:27px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  color:#fff;font-size:10px;font-weight:900;
+  box-shadow:0 0 10px rgba(255,255,255,.08);
+}
+.cell.P{background:#2563eb}
+.cell.B{background:#dc2626}
+.cell.T{background:#16a34a}
+
+.controls{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.btn{
+  min-height:42px;
+  border:0;
+  border-radius:11px;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+  transition:.16s transform,.16s filter;
+  box-shadow:0 7px 18px rgba(0,0,0,.25);
+}
+.btn:active{transform:scale(.97)}
+.btn:hover{filter:brightness(1.12)}
+.btn-p{background:linear-gradient(145deg,#2563eb,#1d4ed8)}
+.btn-b{background:linear-gradient(145deg,#dc2626,#991b1b)}
+.btn-t{background:linear-gradient(145deg,#16a34a,#15803d)}
+.btn-undo{background:#334155}
+.btn-clear{background:linear-gradient(145deg,#7f1d1d,#450a0a)}
+
+.ai-box{
+  border:1px solid rgba(245,158,11,.35);
+  background:linear-gradient(145deg,rgba(66,43,5,.42),rgba(15,23,42,.96));
+}
+.ai-pick{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;
+}
+.ai-side{
+  width:72px;height:72px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:1000;
+  border:2px solid rgba(255,255,255,.2);
+}
+.ai-side.P{background:#1d4ed8}.ai-side.B{background:#b91c1c}.ai-side.T{background:#15803d}
+.ai-name{font-size:14px;font-weight:900}
+.ai-conf{font-size:30px;font-weight:1000;color:var(--gold)}
+.reason{
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
+  background:rgba(255,255,255,.05);
+  color:#cbd5e1;
+  font-size:12px;
+  line-height:1.55;
+}
+.meta{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px
+}
+.meta-box{
+  background:rgba(255,255,255,.04);
+  border-radius:10px;padding:9px
+}
+.meta-box small{display:block;color:var(--muted);font-size:10px}
+.meta-box b{font-size:16px}
+
+.history{
+  display:flex;flex-wrap:wrap;gap:4px;
+  max-height:74px;overflow:auto;margin-top:10px
+}
+.hdot{
+  width:18px;height:18px;border-radius:50%;
+  color:#fff;font-size:8px;font-weight:900;
+  display:flex;align-items:center;justify-content:center
+}
+.hdot.P{background:#2563eb}.hdot.B{background:#dc2626}.hdot.T{background:#16a34a}
+
+.entropy{
+  margin-top:12px;
+}
+.entropy-row{
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(255,255,255,.04);
+  padding:10px;border-radius:10px;margin-bottom:7px
+}
+.status{
+  display:inline-flex;padding:4px 9px;border-radius:999px;
+  background:rgba(239,68,68,.18);color:#fca5a5;font-size:11px;font-weight:900
+}
+.warning{
+  font-size:11px;color:#fbbf24;line-height:1.45
+}
+/* =========================================================
+   ADAPTIVE SIGNAL PANEL
+   แสดงว่า AI กำลังปรับน้ำหนักตามเค้าปัจจุบัน
+   ========================================================= */
+
+.adaptive-box{
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
+  background:rgba(34,211,238,.06);
+  border:1px solid rgba(34,211,238,.16);
+}
+
+.adaptive-line{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  margin-bottom:5px;
+}
+
+.adaptive-line:last-child{
+  margin-bottom:0;
+}
+
+.adaptive-label{
+  color:#94a3b8;
+}
+
+.adaptive-value{
+  color:#67e8f9;
+  font-weight:900;
+}
+.strategies{
+  margin-top:12px;
+}
+.strategy{
+  padding:11px 0;
+  border-bottom:1px dashed rgba(255,255,255,.10);
+}
+.strategy:last-child{border-bottom:0}
+.strategy-top{
+  display:flex;justify-content:space-between;gap:10px;align-items:flex-start
+}
+.strategy-name{font-size:13px;font-weight:800}
+.strategy-right{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.strategy-pct{font-size:22px;font-weight:1000;color:var(--gold)}
+.badge{
+  min-width:31px;text-align:center;
+  padding:4px 7px;border-radius:7px;
+  font-size:10px;font-weight:900;color:#fff
+}
+.badge.P{background:#2563eb}.badge.B{background:#dc2626}.badge.T{background:#16a34a}.badge.NA{background:#475569}
+.sub{font-size:10px;color:var(--muted);margin:3px 0 6px}
+.marks{display:flex;gap:3px;flex-wrap:wrap}
+.mark{font-size:11px}
+
+.floating-mini{
+  position:fixed;
+  top:72px;right:18px;
+  width:190px;
+  z-index:9990;
+  padding:9px;
+  border-radius:14px;
+  background:rgba(2,6,23,.94);
+  border:1px solid rgba(245,158,11,.35);
+  box-shadow:0 14px 36px rgba(0,0,0,.40);
+  backdrop-filter:blur(12px);
+}
+.floating-mini .mini-title{
+  font-size:10px;font-weight:1000;color:#fcd34d;
+  margin-bottom:6px;text-align:center
+}
+.mini-road{
+  display:grid;
+  grid-template-rows:repeat(6,21px);
+  grid-auto-flow:column;
+  grid-auto-columns:21px;
+  gap:2px;
+  overflow:hidden;
+  min-height:136px;
+}
+.mini-cell{
+  width:19px;height:19px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:7px;font-weight:1000
+}
+.mini-p{background:#2563eb}.mini-b{background:#dc2626}.mini-t{background:#16a34a}
+.mini-counts{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:3px;margin-top:6px
+}
+.mini-counts div{
+  text-align:center;font-size:9px;padding:3px 1px;
+  background:rgba(255,255,255,.05);border-radius:6px
+}
+.mini-counts b{display:block;font-size:11px}
+/* =========================================================
+   LOGIN SYSTEM
+   จุดวาง: ก่อน .toast{
+   ========================================================= */
+
+.login-overlay{
+  position:fixed;
+  inset:0;
+  z-index:100000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(59,130,246,.18),transparent 35%),
+    rgba(2,6,23,.96);
+  backdrop-filter:blur(14px);
+}
+
+.login-box{
+  width:min(360px,100%);
+  padding:24px 20px;
+  border-radius:18px;
+  background:linear-gradient(
+    145deg,
+    rgba(15,27,45,.98),
+    rgba(3,10,20,.98)
+  );
+  border:1px solid rgba(245,158,11,.40);
+  box-shadow:
+    0 20px 70px rgba(0,0,0,.65),
+    0 0 35px rgba(245,158,11,.08);
+}
+
+.login-title{
+  text-align:center;
+  font-size:24px;
+  font-weight:1000;
+  color:#fcd34d;
+  margin-bottom:4px;
+}
+
+.login-subtitle{
+  text-align:center;
+  color:#94a3b8;
+  font-size:11px;
+  margin-bottom:20px;
+}
+
+.login-field{
+  margin-bottom:12px;
+}
+
+.login-field label{
+  display:block;
+  margin-bottom:5px;
+  color:#cbd5e1;
+  font-size:11px;
+  font-weight:800;
+}
+
+.login-field input{
+  width:100%;
+  height:44px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  outline:none;
+  background:#020617;
+  color:#fff;
+  font-size:14px;
+}
+
+.login-field input:focus{
+  border-color:#22d3ee;
+  box-shadow:0 0 12px rgba(34,211,238,.15);
+}
+
+.password-wrap{
+  position:relative;
+}
+
+.password-wrap input{
+  padding-right:42px;
+}
+
+.login-showpass{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:7px 0 15px;
+  color:#94a3b8;
+  font-size:11px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.login-showpass input{
+  width:15px;
+  height:15px;
+  accent-color:#22d3ee;
+  cursor:pointer;
+}
+
+.login-btn{
+  width:100%;
+  height:44px;
+  border:0;
+  border-radius:10px;
+  cursor:pointer;
+  color:#fff;
+  font-size:14px;
+  font-weight:1000;
+  background:linear-gradient(135deg,#2563eb,#0891b2);
+  box-shadow:0 8px 24px rgba(37,99,235,.25);
+}
+
+.login-btn:active{
+  transform:scale(.98);
+}
+
+.login-error{
+  min-height:18px;
+  margin-top:10px;
+  text-align:center;
+  color:#f87171;
+  font-size:11px;
+  font-weight:800;
+}
+
+.login-locked{
+  display:none;
+}
+
+/* มือถือ */
+@media(max-width:430px){
+  .login-box{
+    width:100%;
+    max-width:340px;
+    padding:21px 17px;
+  }
+
+  .login-title{
+    font-size:22px;
+  }
+}
+.toast{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);
+  opacity:0;pointer-events:none;
+  background:#0f172a;color:#fff;border:1px solid var(--line);
+  padding:9px 13px;border-radius:10px;font-size:12px;z-index:99999;
+  transition:.2s
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:760px){
+  .app{padding:14px 10px 100px}
+  .grid4{grid-template-columns:repeat(4,1fr);gap:6px}
+  .card{padding:10px;border-radius:13px}
+  .stat .label{font-size:9px}.stat .num{font-size:22px}
+  .main-grid{grid-template-columns:1fr}
+  .controls{grid-template-columns:repeat(5,1fr);gap:5px}
+  .btn{min-height:40px;font-size:12px}
+  .floating-mini{
+    top:68px;right:12px;width:172px;
+  }
+  .mini-road{
+    grid-template-rows:repeat(6,20px);
+    grid-auto-columns:20px;
+    min-height:130px;
+  }
+  .mini-cell{width:18px;height:18px}
+}
+@media(max-width:430px){
+  .floating-mini{right:10px;width:160px}
+  .header h1{font-size:25px}
+  .controls .btn{font-size:11px;padding:0 2px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     LOGIN SYSTEM
+     จุดวาง: ทันทีหลัง <body>
+     ========================================================= -->
+
+<div id="loginOverlay" class="login-overlay">
+
+  <div class="login-box">
+
+    <div class="login-title">
+      GOD'S EYE AI
+    </div>
+
+    <div class="login-subtitle">
+      Secure Login • AI Baccarat System
+    </div>
+
+    <div class="login-field">
+      <label>USERNAME</label>
+      <input
+        id="loginUsername"
+        type="text"
+        autocomplete="username"
+        placeholder="กรอก Username"
+      >
+    </div>
+
+    <div class="login-field">
+      <label>PASSWORD</label>
+
+      <div class="password-wrap">
+        <input
+          id="loginPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="กรอก Password"
+        >
+      </div>
+    </div>
+
+    <!-- ☑ แสดง Password -->
+    <label class="login-showpass">
+      <input
+        id="showPassword"
+        type="checkbox"
+      >
+      <span>แสดง Password</span>
+    </label>
+
+    <button
+      id="loginButton"
+      class="login-btn"
+      type="button"
+    >
+      LOGIN
+    </button>
+
+    <div
+      id="loginError"
+      class="login-error"
+    ></div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     จุดวางที่ 1: กล่องลอย MINI BEAD ROAD
+     ========================================================= -->
+<div id="floatingMiniBead" class="floating-mini">
+  <div class="mini-title">MINI BEAD ROAD • AI</div>
+  <div id="miniBead" class="mini-road"></div>
+  <div class="mini-counts">
+    <div><span class="p">P</span><b id="miniP">0</b></div>
+    <div><span class="b">B</span><b id="miniB">0</b></div>
+    <div><span class="t">T</span><b id="miniT">0</b></div>
+    <div><span>ALL</span><b id="miniAll">0</b></div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- =======================================================
+       จุดวางที่ 2: HEADER
+       ======================================================= -->
+  <header class="header">
+    <h1>God's Eye AI</h1>
+    <p>ระบบวิเคราะห์บาคาร่า • Standalone Fixed Edition</p>
+    <p></p>
+  </header>
+
+  <!-- =======================================================
+       จุดวางที่ 3: COUNTERS
+       ======================================================= -->
+  <section class="grid4">
+    <div class="card stat"><div class="label">🎯 P</div><div id="cntP" class="num p">0</div></div>
+    <div class="card stat"><div class="label">🎯 B</div><div id="cntB" class="num b">0</div></div>
+    <div class="card stat"><div class="label">🎯 T</div><div id="cntT" class="num t">0</div></div>
+    <div class="card stat"><div class="label">📊 TOTAL</div><div id="cntAll" class="num">0</div></div>
+  </section>
+
+  <div class="main-grid">
+
+    <main>
+      <!-- ===================================================
+           จุดวางที่ 4: BEAD ROAD หลัก
+           =================================================== -->
+      <section class="card">
+        <div class="section-title">Bead Road</div>
+        <div class="road-wrap"><div id="beadRoad" class="road"></div></div>
+
+        <!-- ================================================
+             จุดวางที่ 5: ปุ่ม P / B / T / UNDO / CLEAR
+             ================================================ -->
+        <div class="controls">
+          <button id="btnP" class="btn btn-p" type="button">P</button>
+          <button id="btnB" class="btn btn-b" type="button">B</button>
+          <button id="btnT" class="btn btn-t" type="button">T</button>
+          <button id="btnUndo" class="btn btn-undo" type="button">Undo</button>
+          <button id="btnClear" class="btn btn-clear" type="button">Clear</button>
+        </div>
+      </section>
+
+      <!-- ===================================================
+           จุดวางที่ 6: AI PICK + เหตุผล
+           =================================================== -->
+      <section class="card ai-box">
+        <div class="section-title">AI Quick View</div>
+        <div class="ai-pick">
+          <div>
+            <div class="ai-name" id="aiStrategy">รอข้อมูล...</div>
+            <div class="ai-conf" id="aiConfidence">--%</div>
+          </div>
+          <div id="aiSide" class="ai-side">--</div>
+        </div>
+        <div id="aiReason" class="reason">
+          เพิ่มผลอย่างน้อย 1 ตา เพื่อเริ่มวิเคราะห์
+        </div>
+        <!-- =======================================================
+     จุดวาง: ADAPTIVE SIGNAL STATUS
+     ======================================================= -->
+<div class="adaptive-box">
+
+  <div class="adaptive-line">
+    <span class="adaptive-label">โหมดอ่านเค้า</span>
+    <span id="regimeMode" class="adaptive-value">WAITING</span>
+  </div>
+
+  <div class="adaptive-line">
+    <span class="adaptive-label">16 สายที่กำลังเชื่อถือ</span>
+    <span id="adaptiveVotes" class="adaptive-value">--</span>
+  </div>
+
+  <div class="adaptive-line">
+    <span class="adaptive-label">Pattern Memory</span>
+    <span id="patternMemory" class="adaptive-value">--</span>
+  </div>
+
+</div>
+        <div class="meta">
+          <div class="meta-box"><small>NEXT PATTERN</small><b id="patternNow">--</b></div>
+          <div class="meta-box"><small>LAST RESULT</small><b id="lastResult">--</b></div>
+        </div>
+        <div id="history" class="history"></div>
+      </section>
+
+      <!-- ===================================================
+           จุดวางที่ 7: ENTROPY
+           =================================================== -->
+      <section class="card entropy">
+        <div class="section-title">Entropy Analysis</div>
+        <div class="entropy-row"><span>Entropy Score:</span><b id="entropyScore">0.00</b></div>
+        <div class="entropy-row"><span>Status:</span><span id="entropyStatus" class="status">WAITING</span></div>
+        <div id="entropyWarning" class="warning">เพิ่มข้อมูลเพื่อประเมินรูปแบบ</div>
+      </section>
+    </main>
+
+    <aside>
+      <!-- ===================================================
+           จุดวางที่ 8: STRATEGIES
+           =================================================== -->
+      <section class="card strategies">
+        <div class="section-title">กลยุทธ์ &amp; DNA (16 สาย)</div>
+        <div id="strategyList"></div>
+      </section>
+    </aside>
+
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================================================
+   GOD'S EYE AI — JAVASCRIPT หลัก
+   จุดสำคัญ:
+   1) history ใช้ชุดเดียวกับ Bead Road + Mini Bead Road
+   2) Undo ลบผลล่าสุดแล้ว render ใหม่ทั้งหมด
+   3) Clear ล้าง history + localStorage
+   4) ทุกการเพิ่ม P/B/T เรียก updateUI()
+   ============================================================ */
+
+const STORAGE_KEY = "gods_eye_ai_history_v1";
+const ROWS = 6;
+
+/* ============================================================
+   จุดวาง JS #1: รายชื่อ 16 กลยุทธ์จากไฟล์ต้นฉบับ
+   ============================================================ */
+const STRATEGIES = [
+  {name:"Balance Drift Lock (ดักสมดุลทุกตา)", type:"balance"},
+  {name:"Reverse Momentum Flip (สวนตอนนิ่ง)", type:"reverse"},
+  {name:"Acceleration Trap (กับดักความเร็ว)", type:"accel"},
+  {name:"Ping Pong Flow (สวิงกลับ 2 ตา)", type:"pingpong"},
+  {name:"Quantum AI Pattern Breaker (ตาทิพย์)", type:"breaker"},
+  {name:"Fake Break Counter (หลอกแล้วสวนเร็ว)", type:"fakebreak"},
+  {name:"Cut (ตัดเค้า)", type:"cut"},
+  {name:"Early Majority Snap (เสียงข้างมากเร็ว)", type:"majority2"},
+  {name:"Swing Depth Reversal (สวนเมื่อสวิงลึก)", type:"swing"},
+  {name:"Always Bet (แทงทุกตา)", type:"always"},
+  {name:"Follow (ตามเค้า)", type:"follow"},
+  {name:"Weighted Recency Pressure (ถ่วงน้ำหนัก)", type:"weighted"},
+  {name:"Mirror-4 (ย้อนหลัง 4)", type:"mirror4"},
+  {name:"Last-2 Majority (สีมาก 2 ตาล่าสุด)", type:"last2"},
+  {name:"Pressure Pullback (ดึงกลับจากแรงกด)", type:"pressure"},
+  {name:"Majority (เค้ามาก)", type:"majority"}
+];
+
+let history = [];
+
+/* ============================================================
+   จุดวาง JS #2: DOM references
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   จุดวาง JS #3: โหลดข้อมูลเก่า
+   ============================================================ */
+function loadHistory(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    history = Array.isArray(saved)
+      ? saved.filter(x => ["P","B","T"].includes(x))
+      : [];
+  }catch(e){
+    history = [];
+  }
+}
+
+/* ============================================================
+   จุดวาง JS #4: บันทึกข้อมูล
+   ============================================================ */
+function saveHistory(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+}
+
+/* ============================================================
+   จุดวาง JS #5: เพิ่มผล
+   ============================================================ */
+function addResult(result){
+  if(!["P","B","T"].includes(result)) return;
+  history.push(result);
+  saveHistory();
+  updateUI();
+  showToast("เพิ่ม " + result + " แล้ว");
+}
+
+/* ============================================================
+   จุดวาง JS #6: UNDO
+   ============================================================ */
+function undo(){
+  if(!history.length){
+    showToast("ยังไม่มีข้อมูลให้ Undo");
+    return;
+  }
+  history.pop();
+  saveHistory();
+  updateUI();
+  showToast("Undo ผลล่าสุดแล้ว");
+}
+
+/* ============================================================
+   จุดวาง JS #7: CLEAR
+   ============================================================ */
+function clearAll(){
+  if(!history.length){
+    showToast("ยังไม่มีข้อมูล");
+    return;
+  }
+  if(!confirm("ต้องการล้างประวัติทั้งหมดใช่หรือไม่?")) return;
+  history = [];
+  localStorage.removeItem(STORAGE_KEY);
+  updateUI();
+  showToast("ล้างข้อมูลทั้งหมดแล้ว");
+}
+
+/* ============================================================
+   จุดวาง JS #8: COUNT
+   ============================================================ */
+function countResults(){
+  return {
+    P: history.filter(x=>x==="P").length,
+    B: history.filter(x=>x==="B").length,
+    T: history.filter(x=>x==="T").length
+  };
+}
+
+/* ============================================================
+   จุดวาง JS #9: สร้าง Bead Road หลัก
+   ใช้ history ชุดเดียวกับ Mini Bead
+   ============================================================ */
+function renderBeadRoad(){
+  const road = $("beadRoad");
+  road.innerHTML = "";
+
+  history.forEach((r,i)=>{
+    const cell = document.createElement("div");
+    cell.className = "cell " + r;
+    cell.textContent = r;
+    cell.title = "ตาที่ " + (i+1);
+    road.appendChild(cell);
+  });
+}
+
+/* ============================================================
+   จุดวาง JS #10: สร้าง MINI BEAD ROAD
+   ============================================================ */
+function renderMiniBead(){
+  const table = $("miniBead");
+  if(!table) return;
+
+  table.innerHTML = "";
+
+  history.forEach((r,i)=>{
+    const cell = document.createElement("div");
+    cell.className =
+      "mini-cell " +
+      (r==="P" ? "mini-p" : r==="B" ? "mini-b" : "mini-t");
+    cell.textContent = r;
+    cell.title = "ตาที่ " + (i+1);
+
+    /* 6 แถวเหมือน Bead Road หลัก */
+    const row = i % ROWS;
+    const col = Math.floor(i / ROWS);
+    cell.style.gridRow = String(row + 1);
+    cell.style.gridColumn = String(col + 1);
+
+    table.appendChild(cell);
+  });
+
+  const c = countResults();
+  $("miniP").textContent = c.P;
+  $("miniB").textContent = c.B;
+  $("miniT").textContent = c.T;
+  $("miniAll").textContent = history.length;
+}
+
+/* ============================================================
+   จุดวาง JS #11: pattern helpers
+   ============================================================ */
+function cleanHistory(){
+  return history.filter(x => x==="P" || x==="B");
+}
+
+function majority(arr){
+  if(!arr.length) return null;
+  let p=0,b=0;
+  arr.forEach(x=>x==="P"?p++:b++);
+  return p===b ? null : p>b ? "P" : "B";
+}
+
+function opposite(x){
+  return x==="P" ? "B" : x==="B" ? "P" : null;
+}
+
+function predictByStrategy(type){
+  const h = cleanHistory();
+  if(!h.length) return null;
+
+  const last = h[h.length-1];
+  const prev = h[h.length-2];
+  const last2 = h.slice(-2);
+  const last4 = h.slice(-4);
+  const last6 = h.slice(-6);
+
+  switch(type){
+    case "balance":
+      return h.filter(x=>x==="P").length <= h.filter(x=>x==="B").length ? "P":"B";
+    case "reverse":
+      return last && prev && last!==prev ? last : opposite(last);
+    case "accel":
+      if(h.length<3) return last;
+      return last===prev ? last : opposite(last);
+    case "pingpong":
+      if(last2.length<2) return opposite(last);
+      return last2[0]!==last2[1] ? opposite(last) : last;
+    case "breaker":
+      return majority(last4) || opposite(last);
+    case "fakebreak":
+      return last2.length===2 && last2[0]===last2[1] ? opposite(last) : last;
+    case "cut":
+      return opposite(last);
+    case "majority2":
+    case "last2":
+      return majority(last2) || last;
+    case "swing":
+      if(last6.length>=4){
+        const m=majority(last6);
+        return m ? opposite(m) : opposite(last);
+      }
+      return opposite(last);
+    case "always":
+      return majority(h) || last;
+    case "follow":
+      return last;
+    case "weighted":
+      {
+        let p=0,b=0;
+        h.slice(-8).forEach((x,i)=>{
+          const w=i+1;
+          x==="P"?p+=w:b+=w;
+        });
+        return p===b ? last : p>b ? "P":"B";
+      }
+    case "mirror4":
+      return last4.length>=4 ? last4[0] : last;
+    case "pressure":
+      return majority(last4) ? opposite(majority(last4)) : opposite(last);
+    case "majority":
+      return majority(h) || last;
+    default:
+      return last;
+  }
+}
+/* ============================================================
+   จุดวาง JS #11.5
+   ADAPTIVE REGIME + PATTERN MEMORY ENGINE
+
+   หน้าที่:
+   1. ตรวจว่าเค้าปัจจุบันเป็นสลับ / คู่ / ติด / ผสม
+   2. ดูความแม่นของแต่ละสายเฉพาะช่วงล่าสุด
+   3. หา Pattern เดิมที่มี suffix คล้ายกัน
+   4. ไม่ปล่อยให้ 16 สายมีน้ำหนักเท่ากันตลอดเวลา
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   อ่านเฉพาะ P/B
+   ------------------------------------------------------------ */
+function getPB(){
+  return history.filter(x => x === "P" || x === "B");
+}
+
+
+/* ------------------------------------------------------------
+   ตรวจประเภทเค้าปัจจุบัน
+   ------------------------------------------------------------ */
+function detectRegime(){
+
+  const h = getPB();
+
+  if(h.length < 4){
+    return {
+      mode:"WAITING",
+      score:0
+    };
+  }
+
+  const last6 = h.slice(-6);
+
+  let switches = 0;
+  let doubles = 0;
+
+  for(let i=1;i<last6.length;i++){
+
+    if(last6[i] !== last6[i-1]){
+      switches++;
+    }else{
+      doubles++;
+    }
+
+  }
+
+  /*
+    SWITCHING
+    เช่น P B P B P B
+
+    PAIR / DOUBLE
+    เช่น P B B P P B
+
+    FOLLOW
+    เช่น P P P B B
+
+    MIXED
+    เค้าไม่ชัด
+  */
+
+  if(switches >= 4){
+
+    return {
+      mode:"SWITCHING",
+      score:Math.round((switches/(last6.length-1))*100)
+    };
+
+  }
+
+  if(doubles >= 3){
+
+    return {
+      mode:"PAIR / DOUBLE",
+      score:Math.round((doubles/(last6.length-1))*100)
+    };
+
+  }
+
+  if(last6.length >= 5){
+
+    const sameLast =
+      last6.slice(-3).every(x => x === last6.at(-1));
+
+    if(sameLast){
+
+      return {
+        mode:"FOLLOW / STREAK",
+        score:80
+      };
+
+    }
+
+  }
+
+  return {
+    mode:"MIXED",
+    score:50
+  };
+}
+
+
+/* ------------------------------------------------------------
+   คำนวณความแม่นของสายแบบ "ล่าสุด"
+   ไม่ใช้ข้อมูลทั้ง Shoe อย่างเดียว
+   ------------------------------------------------------------ */
+function recentStrategyScore(type, windowSize=8){
+
+  const h = getPB();
+
+  if(h.length < 3) return null;
+
+  const start =
+    Math.max(1, h.length - windowSize);
+
+  let wins = 0;
+  let total = 0;
+
+  for(let i=start;i<h.length;i++){
+
+    const original = history;
+
+    /*
+      จำลองเฉพาะข้อมูลก่อนตาที่กำลังทดสอบ
+    */
+    history = h.slice(0,i);
+
+    const pred = predictByStrategy(type);
+
+    history = original;
+
+    if(!pred) continue;
+
+    total++;
+
+    if(pred === h[i]){
+      wins++;
+    }
+
+  }
+
+  if(!total) return null;
+
+  return Math.round((wins/total)*100);
+}
+
+
+/* ------------------------------------------------------------
+   หาว่าสายไหน "กำลังแพ้เค้าปัจจุบัน"
+   ------------------------------------------------------------ */
+function recentStreakPenalty(type){
+
+  const h = getPB();
+
+  if(h.length < 2) return 0;
+
+  let wrong = 0;
+
+  const check =
+    Math.min(4, h.length - 1);
+
+  for(let n=1;n<=check;n++){
+
+    const i = h.length - n;
+
+    const original = history;
+
+    history = h.slice(0,i);
+
+    const pred = predictByStrategy(type);
+
+    history = original;
+
+    if(pred && pred !== h[i]){
+      wrong++;
+    }else{
+      break;
+    }
+
+  }
+
+  return wrong;
+}
+
+
+/* ------------------------------------------------------------
+   Pattern Memory
+   หา sequence เดิมที่เคยเกิดขึ้น
+   เช่น suffix 2 / 3 / 4 / 5 ตา
+   แล้วดูว่าหลังจากนั้นเคยออกอะไร
+   ------------------------------------------------------------ */
+function patternMemoryPredict(){
+
+  const h = getPB();
+
+  if(h.length < 4){
+
+    return {
+      pred:null,
+      strength:0,
+      length:0
+    };
+
+  }
+
+  let bestPred = null;
+  let bestStrength = 0;
+  let bestLength = 0;
+
+  /*
+    ให้ suffix ยาวมีน้ำหนักมากกว่า
+  */
+  for(let len=2;len<=Math.min(6,h.length-1);len++){
+
+    const suffix =
+      h.slice(-len).join("");
+
+    let p=0;
+    let b=0;
+
+    for(let i=len;i<h.length;i++){
+
+      const past =
+        h.slice(i-len,i).join("");
+
+      if(past !== suffix) continue;
+
+      if(h[i] === "P") p++;
+      if(h[i] === "B") b++;
+
+    }
+
+    const total = p+b;
+
+    if(!total) continue;
+
+    const pred =
+      p>b ? "P" :
+      b>p ? "B" :
+      null;
+
+    if(!pred) continue;
+
+    const confidence =
+      Math.round(
+        (Math.max(p,b)/total)*100
+      );
+
+    /*
+      ความยาว Pattern มีผลมาก
+    */
+    const strength =
+      confidence +
+      len * 5 +
+      Math.min(total,5) * 3;
+
+    if(strength > bestStrength){
+
+      bestStrength = strength;
+      bestPred = pred;
+      bestLength = len;
+
+    }
+
+  }
+
+  return {
+    pred:bestPred,
+    strength:bestStrength,
+    length:bestLength
+  };
+}
+
+
+/* ------------------------------------------------------------
+   Adaptive Weight
+   ------------------------------------------------------------ */
+function adaptiveStrategyWeight(strategy){
+
+  const oldScore =
+    strategy.score == null
+      ? 50
+      : strategy.score;
+
+  const recent =
+    recentStrategyScore(strategy.type,8);
+
+  const recentScore =
+    recent == null
+      ? oldScore
+      : recent;
+
+  /*
+    ให้น้ำหนักล่าสุด 70%
+    ประวัติเดิม 30%
+  */
+  let weight =
+    recentScore * 0.70 +
+    oldScore * 0.30;
+
+  /*
+    ถ้าแพ้ติดกัน ลดน้ำหนักชั่วคราว
+  */
+  const penalty =
+    recentStreakPenalty(strategy.type);
+
+  if(penalty === 1){
+    weight -= 6;
+  }else if(penalty === 2){
+    weight -= 14;
+  }else if(penalty >= 3){
+    weight -= 24;
+  }
+
+  return Math.max(5,Math.min(100,weight));
+}
+
+
+/* ------------------------------------------------------------
+   ปรับน้ำหนักตามประเภทเค้า
+   ------------------------------------------------------------ */
+function regimeBonus(type,regime){
+
+  /*
+    เค้าสลับ:
+    ให้ Ping Pong / Reverse / Cut
+    มีน้ำหนักเพิ่ม
+  */
+  if(regime.mode === "SWITCHING"){
+
+    if(
+      type === "pingpong" ||
+      type === "reverse" ||
+      type === "cut"
+    ){
+      return 12;
+    }
+
+    if(
+      type === "follow" ||
+      type === "always"
+    ){
+      return -8;
+    }
+
+  }
+
+
+  /*
+    เค้าคู่ / ติด:
+    ให้ Follow / Acceleration / Majority
+  */
+  if(regime.mode === "PAIR / DOUBLE"){
+
+    if(
+      type === "follow" ||
+      type === "accel" ||
+      type === "majority"
+    ){
+      return 8;
+    }
+
+    if(type === "cut"){
+      return -5;
+    }
+
+  }
+
+
+  /*
+    เค้าติด
+  */
+  if(regime.mode === "FOLLOW / STREAK"){
+
+    if(
+      type === "follow" ||
+      type === "weighted"
+    ){
+      return 10;
+    }
+
+    if(type === "reverse"){
+      return -8;
+    }
+
+  }
+
+  return 0;
+}
+/* ============================================================
+   จุดวาง JS #12: score strategies แบบอิงผลจริงย้อนหลัง
+   ไม่ใส่เปอร์เซ็นต์ปลอมจาก snapshot
+   ============================================================ */
+function strategyScore(type){
+  const h = cleanHistory();
+  if(h.length < 2) return null;
+
+  let wins=0,total=0;
+  const warmup = 1;
+
+  for(let i=warmup;i<h.length;i++){
+    const past = h.slice(0,i);
+    const original = history;
+    history = past;
+    const pred = predictByStrategy(type);
+    history = original;
+
+    if(!pred) continue;
+    total++;
+    if(pred===h[i]) wins++;
+  }
+
+  if(!total) return null;
+  return Math.round((wins/total)*100);
+}
+
+/* ============================================================
+   จุดวาง JS #13: เลือก AI หลัก
+   ============================================================ */
+/* ============================================================
+   จุดวาง JS #13 — ADAPTIVE 16 SIGNAL ANALYZER
+   ============================================================ */
+
+function analyze(){
+
+  if(history.length === 0){
+
+    return {
+      side:null,
+      confidence:0,
+      strategy:"รอข้อมูล...",
+      reason:"เพิ่มผล P / B / T อย่างน้อย 1 ตา เพื่อเริ่มวิเคราะห์",
+      regime:"WAITING",
+      activeSignals:0,
+      memory:null
+    };
+
+  }
+
+
+  const h = getPB();
+
+  if(h.length === 0){
+
+    return {
+      side:null,
+      confidence:0,
+      strategy:"รอ P/B",
+      reason:"มีเฉพาะ Tie จึงยังไม่บังคับทิศทาง P/B",
+      regime:"WAITING",
+      activeSignals:0,
+      memory:null
+    };
+
+  }
+
+
+  /* ========================================================
+     1. ตรวจเค้าปัจจุบัน
+     ======================================================== */
+
+  const regime = detectRegime();
+
+
+  /* ========================================================
+     2. Pattern Memory
+     ======================================================== */
+
+  const memory = patternMemoryPredict();
+
+
+  /* ========================================================
+     3. คำนวณ 16 สายแบบ Adaptive
+     ======================================================== */
+
+  const scored = STRATEGIES.map((s,index)=>{
+
+    const oldScore =
+      strategyScore(s.type);
+
+    const pred =
+      predictByStrategy(s.type);
+
+    const temp = {
+      ...s,
+      index,
+      score:oldScore === null ? 50 : oldScore,
+      pred
+    };
+
+    /*
+      น้ำหนักจริง
+    */
+    const adaptive =
+      adaptiveStrategyWeight(temp);
+
+    /*
+      ประเภทเค้าปัจจุบัน
+    */
+    const regimeAdj =
+      regimeBonus(s.type,regime);
+
+    /*
+      คะแนนสุดท้าย
+    */
+    const finalWeight =
+      Math.max(
+        1,
+        adaptive + regimeAdj
+      );
+
+    return {
+      ...temp,
+      adaptive,
+      regimeAdj,
+      finalWeight,
+      recent:recentStrategyScore(s.type,8),
+      penalty:recentStreakPenalty(s.type)
+    };
+
+  });
+
+
+  /* ========================================================
+     4. รวมคะแนน P / B
+     ไม่ใช่แค่นับจำนวนสาย
+     ======================================================== */
+
+  let scoreP = 0;
+  let scoreB = 0;
+
+  scored.forEach(s=>{
+
+    if(s.pred === "P"){
+      scoreP += s.finalWeight;
+    }
+
+    if(s.pred === "B"){
+      scoreB += s.finalWeight;
+    }
+
+  });
+
+
+  /* ========================================================
+     5. Pattern Memory มีสิทธิ์เพิ่มน้ำหนัก
+     แต่ไม่บังคับผล
+     ======================================================== */
+
+  if(
+    memory.pred &&
+    memory.length >= 3 &&
+    memory.strength >= 80
+  ){
+
+    const memoryWeight =
+      Math.min(22,memory.length * 3 + 8);
+
+    if(memory.pred === "P"){
+      scoreP += memoryWeight;
+    }
+
+    if(memory.pred === "B"){
+      scoreB += memoryWeight;
+    }
+
+  }
+
+
+  /* ========================================================
+     6. เลือกผลจาก WEIGHTED VOTE
+     ======================================================== */
+
+  let consensus = null;
+
+  if(scoreP > scoreB){
+    consensus = "P";
+  }else if(scoreB > scoreP){
+    consensus = "B";
+  }else{
+    consensus =
+      h.at(-1);
+  }
+
+
+  const totalScore =
+    scoreP + scoreB;
+
+  const dominance =
+    totalScore > 0
+      ? Math.max(scoreP,scoreB) / totalScore
+      : .5;
+
+
+  /* ========================================================
+     7. หา Top Strategy ที่ "กำลังดีจริง"
+     ======================================================== */
+
+  const usable =
+    scored
+      .filter(x=>x.pred)
+      .sort((a,b)=>b.finalWeight-a.finalWeight);
+
+
+  const top =
+    usable[0] || null;
+
+
+  /* ========================================================
+     8. Agreement แบบถ่วงน้ำหนัก
+     ======================================================== */
+
+  const winningScore =
+    consensus === "P"
+      ? scoreP
+      : scoreB;
+
+  const losingScore =
+    consensus === "P"
+      ? scoreB
+      : scoreP;
+
+
+  /*
+    ถ้าสองฝั่งสูสีกันมาก
+    ห้ามแสดง confidence สูง
+  */
+  const separation =
+    totalScore > 0
+      ? (winningScore-losingScore)/totalScore
+      : 0;
+
+
+  let confidence =
+    50 +
+    dominance * 30 +
+    Math.max(0,separation) * 20;
+
+
+  /*
+    จำกัดไม่ให้ 16 สายรวมกันแล้ว
+    กลายเป็นความมั่นใจปลอม
+  */
+  confidence =
+    Math.round(
+      Math.min(92,Math.max(50,confidence))
+    );
+
+
+  /* ========================================================
+     9. ถ้าเค้าขัดกันมาก ลด Confidence
+     ======================================================== */
+
+  if(separation < .10){
+
+    confidence =
+      Math.min(confidence,58);
+
+  }else if(separation < .20){
+
+    confidence =
+      Math.min(confidence,68);
+
+  }
+
+
+  /* ========================================================
+     10. ถ้า Pattern Memory แข็งแรง
+     แต่ 16 สายสวน
+     ให้ลดความมั่นใจแทนการฝืน
+     ======================================================== */
+
+  if(
+    memory.pred &&
+    memory.length >= 3 &&
+    memory.strength >= 85 &&
+    memory.pred !== consensus
+  ){
+
+    confidence =
+      Math.min(confidence,64);
+
+  }
+
+
+  /* ========================================================
+     11. สร้างเหตุผล
+     ======================================================== */
+
+  let reason =
+    `เลือก ${consensus} จาก Adaptive Vote ` +
+    `(P ${scoreP.toFixed(1)} / B ${scoreB.toFixed(1)})`;
+
+
+  if(top){
+
+    reason +=
+      ` • สายหลัก ${top.name}` +
+      ` น้ำหนัก ${top.finalWeight.toFixed(1)}`;
+
+  }
+
+
+  if(regime.mode === "SWITCHING"){
+
+    reason +=
+      " • ตรวจพบเค้าสลับ จึงเพิ่มน้ำหนักสาย Ping Pong / Reverse / Cut";
+
+  }else if(regime.mode === "PAIR / DOUBLE"){
+
+    reason +=
+      " • ตรวจพบเค้าคู่ จึงปรับน้ำหนักสาย Follow / Acceleration";
+
+  }else if(regime.mode === "FOLLOW / STREAK"){
+
+    reason +=
+      " • ตรวจพบเค้าติด จึงเพิ่มน้ำหนัก Follow / Weighted";
+
+  }else{
+
+    reason +=
+      " • เค้าปัจจุบันยังเป็นแบบผสม";
+
+  }
+
+
+  if(
+    memory.pred &&
+    memory.length >= 3
+  ){
+
+    reason +=
+      ` • Pattern Memory ${memory.length} ตา → ${memory.pred}`;
+
+  }
+
+
+  if(history.at(-1) === "T"){
+
+    reason +=
+      " • ตาล่าสุดเป็น Tie จึงไม่นำ Tie ไปบังคับทิศทาง P/B";
+
+  }
+
+
+  /* ========================================================
+     12. คืนค่าทั้งหมดให้ updateUI()
+     ======================================================== */
+
+  return {
+
+    side:consensus,
+
+    confidence,
+
+    strategy:
+      top
+        ? top.name
+        : "Adaptive Consensus",
+
+    reason,
+
+    regime:regime.mode,
+
+    activeSignals:
+      usable.length,
+
+    memory
+
+  };
+
+}
+/* ============================================================
+   จุดวาง JS #14: entropy
+   ============================================================ */
+function updateEntropy(){
+  const h = cleanHistory();
+
+  if(h.length<2){
+    $("entropyScore").textContent="0.00";
+    $("entropyStatus").textContent="WAITING";
+    $("entropyStatus").style.background="rgba(59,130,246,.18)";
+    $("entropyStatus").style.color="#93c5fd";
+    $("entropyWarning").textContent="เพิ่มข้อมูลเพื่อประเมินรูปแบบ";
+    return;
+  }
+
+  const p=h.filter(x=>x==="P").length/h.length;
+  const b=1-p;
+  let entropy=0;
+  if(p>0) entropy-=p*Math.log2(p);
+  if(b>0) entropy-=b*Math.log2(b);
+
+  $("entropyScore").textContent=entropy.toFixed(2);
+
+  if(entropy>=.85){
+    $("entropyStatus").textContent="CHAOTIC";
+    $("entropyStatus").style.background="rgba(239,68,68,.18)";
+    $("entropyStatus").style.color="#fca5a5";
+    $("entropyWarning").textContent="⚠️ ความไร้ระเบียบสูง — สัญญาณไม่ชัด ควรใช้ข้อมูลประกอบ ไม่ควรตีความเป็นความแน่นอน";
+  }else if(entropy>=.55){
+    $("entropyStatus").textContent="MIXED";
+    $("entropyStatus").style.background="rgba(245,158,11,.18)";
+    $("entropyStatus").style.color="#fcd34d";
+    $("entropyWarning").textContent="รูปแบบผสม สัญญาณยังมีความผันผวน";
+  }else{
+    $("entropyStatus").textContent="STRUCTURED";
+    $("entropyStatus").style.background="rgba(34,197,94,.18)";
+    $("entropyStatus").style.color="#86efac";
+    $("entropyWarning").textContent="รูปแบบ P/B มีความเอนเอียงมากขึ้นเมื่อเทียบกับข้อมูลที่ผ่านมา";
+  }
+}
+
+/* ============================================================
+   จุดวาง JS #15: Strategy List
+   ============================================================ */
+function renderStrategies(){
+  const box = $("strategyList");
+  box.innerHTML = "";
+
+  const rows = STRATEGIES.map(s=>{
+    const score = strategyScore(s.type);
+    const pred = predictByStrategy(s.type);
+    return {...s,score,pred};
+  });
+
+  rows.sort((a,b)=>(b.score??-1)-(a.score??-1));
+
+  rows.forEach((s,i)=>{
+    const el=document.createElement("div");
+    el.className="strategy";
+
+    const pct = s.score===null ? 0 : s.score;
+    const badge = s.pred || "NA";
+
+    const past = [];
+    const h=cleanHistory();
+    for(let j=Math.max(1,h.length-12);j<h.length;j++){
+      const pastHistory = history;
+      history = h.slice(0,j);
+      const pred=predictByStrategy(s.type);
+      history = pastHistory;
+      if(!pred) continue;
+      past.push(pred===h[j] ? "✅" : "❌");
+    }
+
+    el.innerHTML = `
+      <div class="strategy-top">
+        <div class="strategy-name">${i+1}. ${escapeHtml(s.name)}</div>
+        <div class="strategy-right">
+          <span class="strategy-pct">${pct}%</span>
+          <span class="badge ${badge}">${badge}</span>
+        </div>
+      </div>
+      <div class="sub">Winrate จากผลย้อนหลัง: ${pct}% | ตัวอย่างสัญญาณล่าสุด: ${past.length}</div>
+      <div class="marks">${past.map(x=>`<span class="mark">${x}</span>`).join("")}</div>
+    `;
+    box.appendChild(el);
+  });
+}
+
+/* ============================================================
+   จุดวาง JS #16: updateUI()
+   สำคัญมาก — ทุกฟังก์ชันหลังเพิ่ม/undo/clear ต้องเรียกตัวนี้
+   ============================================================ */
+function updateUI(){
+  const c=countResults();
+
+  $("cntP").textContent=c.P;
+  $("cntB").textContent=c.B;
+  $("cntT").textContent=c.T;
+  $("cntAll").textContent=history.length;
+
+  renderBeadRoad();
+  renderMiniBead();
+
+  $("history").innerHTML="";
+  history.slice(-24).forEach(r=>{
+    const d=document.createElement("span");
+    d.className="hdot "+r;
+    d.textContent=r;
+    $("history").appendChild(d);
+  });
+
+  const a=analyze();
+  /* ========================================================
+   ADAPTIVE STATUS
+   ======================================================== */
+
+if($("regimeMode")){
+  $("regimeMode").textContent =
+    a.regime || "WAITING";
+}
+
+if($("adaptiveVotes")){
+  $("adaptiveVotes").textContent =
+    (a.activeSignals || 0) + " / 16";
+}
+
+if($("patternMemory")){
+
+  if(
+    a.memory &&
+    a.memory.pred &&
+    a.memory.length
+  ){
+
+    $("patternMemory").textContent =
+      a.memory.length +
+      " ตา → " +
+      a.memory.pred;
+
+  }else{
+
+    $("patternMemory").textContent =
+      "ยังไม่มี Match";
+
+  }
+
+}
+
+  $("aiStrategy").textContent=a.strategy;
+  $("aiConfidence").textContent=a.side ? a.confidence+"%" : "--%";
+  $("aiReason").textContent=a.reason;
+
+  const side=$("aiSide");
+  side.className="ai-side "+(a.side||"");
+  side.textContent=a.side||"--";
+
+  $("lastResult").textContent=history.at(-1)||"--";
+
+  const h=cleanHistory();
+  $("patternNow").textContent=h.slice(-6).join("")||"--";
+
+  updateEntropy();
+  renderStrategies();
+}
+
+/* ============================================================
+   จุดวาง JS #17: ป้องกัน HTML injection ในชื่อกลยุทธ์
+   ============================================================ */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+/* ============================================================
+   จุดวาง JS #18: toast
+   ============================================================ */
+let toastTimer;
+function showToast(msg){
+  const t=$("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),1300);
+}
+
+/* ============================================================
+   จุดวาง JS #19: EVENTS
+   ============================================================ */
+$("btnP").addEventListener("click",()=>addResult("P"));
+$("btnB").addEventListener("click",()=>addResult("B"));
+$("btnT").addEventListener("click",()=>addResult("T"));
+$("btnUndo").addEventListener("click",undo);
+$("btnClear").addEventListener("click",clearAll);
+
+/* Keyboard shortcut: P / B / T / U / C */
+document.addEventListener("keydown",e=>{
+  if(e.target.matches("input,textarea")) return;
+  const k=e.key.toUpperCase();
+  if(k==="P") addResult("P");
+  else if(k==="B") addResult("B");
+  else if(k==="T") addResult("T");
+  else if(k==="U") undo();
+  else if(k==="C") clearAll();
+});
+
+/* ============================================================
+   LOGIN + LICENSE API SYSTEM
+   จุดวาง: แทน LOGIN SYSTEM เดิมทั้งหมด
+   ============================================================ */
+
+const LICENSE_API =
+  "https://morning-block-55bb.havanalanna.workers.dev/";
+
+
+/* ============================================================
+   แสดง / ซ่อน Password
+   ============================================================ */
+
+$("showPassword").addEventListener("change", function(){
+
+  $("loginPassword").type =
+    this.checked ? "text" : "password";
+
+});
+
+
+/* ============================================================
+   ตรวจ License จาก Server
+   ============================================================ */
+
+async function checkLicense(username, password){
+
+  const url =
+    LICENSE_API +
+    "?user=" + encodeURIComponent(username) +
+    "&pass=" + encodeURIComponent(password);
+
+  const res = await fetch(url, {
+    method: "GET",
+    cache: "no-store"
+  });
+
+  if(!res.ok){
+    throw new Error("LICENSE_SERVER_ERROR");
+  }
+
+  const data = await res.json();
+
+  return data;
+}
+
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+
+async function doLogin(){
+
+  const username =
+    $("loginUsername").value.trim();
+
+  const password =
+    $("loginPassword").value;
+
+  const error =
+    $("loginError");
+
+  if(!username || !password){
+
+    error.textContent =
+      "กรุณากรอก Username และ Password";
+
+    return;
+  }
+
+
+  /* แสดงสถานะกำลังตรวจสอบ */
+
+  error.style.color = "#fcd34d";
+  error.textContent =
+    "กำลังตรวจสอบ License...";
+
+
+  try{
+
+    const data =
+      await checkLicense(username, password);
+
+
+    /* ========================================================
+       LICENSE OK
+       ======================================================== */
+
+    if(data.status === "ok"){
+
+      $("loginOverlay").style.display = "none";
+
+      error.textContent = "";
+
+      /* ไม่เก็บ Password ลง localStorage */
+
+      $("loginPassword").value = "";
+
+      $("loginPassword").type = "password";
+      $("showPassword").checked = false;
+
+
+      /* อัปเดตระบบทันที */
+
+      updateUI();
+
+
+      showToast("✅ License ใช้งานได้");
+
+
+      /* ======================================================
+         ตรวจ License ซ้ำทุก 30 วินาที
+         ====================================================== */
+
+      startLicenseMonitor(username, password);
+
+      return;
+    }
+
+
+    /* ========================================================
+       LICENSE ไม่ผ่าน
+       ======================================================== */
+
+    error.style.color = "#f87171";
+
+    error.textContent =
+      "❌ Username หรือ Password ไม่ถูกต้อง";
+
+  }catch(e){
+
+    console.error("License Error:", e);
+
+    error.style.color = "#f87171";
+
+    error.textContent =
+      "❌ ไม่สามารถเชื่อมต่อ License Server";
+
+  }
+
+}
+
+
+/* ============================================================
+   LICENSE MONITOR
+   ตรวจทุก 30 วินาที
+   ============================================================ */
+
+let licenseMonitor = null;
+
+function startLicenseMonitor(username, password){
+
+  /* ป้องกัน setInterval ซ้ำ */
+
+  if(licenseMonitor){
+    clearInterval(licenseMonitor);
+  }
+
+
+  licenseMonitor = setInterval(async ()=>{
+
+    try{
+
+      const data =
+        await checkLicense(username, password);
+
+
+      /* ------------------------------------------------------
+         License ถูกปิด / หมดอายุ / ไม่ผ่าน
+         ------------------------------------------------------ */
+
+      if(data.status !== "ok"){
+
+        clearInterval(licenseMonitor);
+        licenseMonitor = null;
+
+
+        alert(
+          "⛔ License ถูกปิดใช้งาน หรือหมดอายุ"
+        );
+
+
+        location.reload();
+
+      }
+
+    }catch(e){
+
+      /*
+         ถ้า Server ขัดข้องชั่วคราว
+         ยังไม่ Logout ทันที
+      */
+
+      console.log(
+        "License check error:",
+        e
+      );
+
+    }
+
+  }, 30000);
+
+}
+
+
+/* ============================================================
+   ENTER = LOGIN
+   ============================================================ */
+
+$("loginUsername").addEventListener(
+  "keydown",
+  e=>{
+    if(e.key === "Enter"){
+      doLogin();
+    }
+  }
+);
+
+
+$("loginPassword").addEventListener(
+  "keydown",
+  e=>{
+    if(e.key === "Enter"){
+      doLogin();
+    }
+  }
+);
+
+
+/* ============================================================
+   ปุ่ม LOGIN
+   ============================================================ */
+
+$("loginButton").addEventListener(
+  "click",
+  doLogin
+);
+/* ============================================================
+   จุดวาง JS #20: START
+   ============================================================ */
+
+loadHistory();
+updateUI();
+</script>
+</body>
+</html>
